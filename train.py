@@ -74,6 +74,9 @@ def main():
             if args.render and (episode % 10 == 1):
                 env.render(mode='rgb_array')
 
+            predator_model.memory(state[:3], action[:3], reward[:3], next_state[:3], done[:3])
+            preyer_model.memory(state[3], action[3], reward[3], next_state[3], done[3])
+
             if episode > args.warmup:
                 predator_model.train()
                 preyer_model.train()
