@@ -30,14 +30,15 @@ class Actor(nn.Module):
 
 
 class Critic(nn.Module):
-    def __init__(self, s_dim, a_dim):
+    def __init__(self, s_dim, a_dim, num_agent):
         super(Critic, self).__init__()
 
+        self.num_agent = num_agent
         self.s_dim = s_dim
         self.a_dim = a_dim
 
-        self.fc1 = nn.Linear(s_dim, 400)
-        self.fc2 = nn.Linear(400 + self.a_dim, 300)
+        self.fc1 = nn.Linear(s_dim * num_agent, 400)
+        self.fc2 = nn.Linear(400 + self.a_dim * num_agent, 300)
         self.fc3 = nn.Linear(300, 1)
         self.relu = nn.ReLU()
 
@@ -45,7 +46,9 @@ class Critic(nn.Module):
         self.fc2.weight.data = fanin_init(self.fc2.weight.data.size())
         self.fc3.weight.data.uniform_(-0.003, 0.003)
 
-    def forward(self, x, a):
+    def forward(self, x_n, a_n):
+        x = x_n.reshape(-1, self.s_dim * self.num_agent)
+        a = a_n.reshape(-1, self.a_dim * self.num_agent)
         x = self.fc1(x)
         x = self.relu(x)
         x = torch.cat([x, a], 1)
