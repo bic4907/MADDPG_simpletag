@@ -8,28 +8,7 @@ from normalized_env import NormalizedEnv
 from utils import split_obs, merge_action
 import time
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--max_episodes', default=100000, type=int)
-parser.add_argument('--episode_length', default=500, type=int)
-parser.add_argument('--memory_length', default=6000000, type=int)
-parser.add_argument('--warmup', default=500, type=int)
-parser.add_argument('--tau', default=0.001, type=float)
-parser.add_argument('--gamma', default=0.99, type=float)
-parser.add_argument('--use_cuda', default=True, type=bool)
-parser.add_argument('--a_lr', default=0.0001, type=float)
-parser.add_argument('--c_lr', default=0.001, type=float)
-parser.add_argument('--batch_size', default=128, type=int)
-parser.add_argument('--render', default=False, type=bool)
-parser.add_argument('--ou_theta', default=0.15, type=float)
-parser.add_argument('--ou_mu', default=0.0, type=float)
-parser.add_argument('--ou_sigma', default=0.2, type=float)
-parser.add_argument('--epsilon_decay', default=50000, type=int)
-parser.add_argument('--reward_coef', default=0.01, type=float)
-parser.add_argument('--tensorboard', default=False, type=bool)
-parser.add_argument('--log_dir', default=datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
-args = parser.parse_args()
-
-def main():
+def main(args):
 
     env = make_env('simple_tag')
     env = NormalizedEnv(env)
@@ -108,7 +87,24 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
-
-
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--max_episodes', default=100000, type=int)
+    parser.add_argument('--episode_length', default=150, type=int)
+    parser.add_argument('--memory_length', default=6000000, type=int)
+    parser.add_argument('--warmup', default=10, type=int)
+    parser.add_argument('--tau', default=0.001, type=float)
+    parser.add_argument('--gamma', default=0.99, type=float)
+    parser.add_argument('--use_cuda', default=True, type=bool)
+    parser.add_argument('--a_lr', default=0.0001, type=float)
+    parser.add_argument('--c_lr', default=0.001, type=float)
+    parser.add_argument('--batch_size', default=128, type=int)
+    parser.add_argument('--render', default=False, type=bool)
+    parser.add_argument('--ou_theta', default=0.15, type=float)
+    parser.add_argument('--ou_mu', default=0.0, type=float)
+    parser.add_argument('--ou_sigma', default=0.2, type=float)
+    parser.add_argument('--epsilon_decay', default=50000, type=int)
+    parser.add_argument('--reward_coef', default=0.01, type=float)
+    parser.add_argument('--tensorboard', default=False, type=bool)
+    parser.add_argument('--log_dir', default=datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
+    args = parser.parse_args()
+    main(args)
