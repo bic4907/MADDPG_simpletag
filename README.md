@@ -1,6 +1,6 @@
 # MADDPG_simpletag
 MADDPG environment to solve openai's 'simple_tag' environment.  
-Three(default) predators chase a preyer for reward(10), this environment was shaped by distance of predators and preyers.
+Three(default) predators chase a preyer for reward(10) plus shaped reward(distance of predators and preyers).
 Three predator choose action with MADDPG algorithms and the preyer acts with uniform distribution from -1. to 1.
 
 
