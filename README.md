@@ -1,5 +1,8 @@
 # MADDPG_simpletag
-MADDPG environment to solve openai's 'simple_tag' env.
+MADDPG environment to solve openai's 'simple_tag' environment.  
+Three(default) predators chase a preyer for reward(10), this environment was shaped by distance of predators and preyers.
+Three predator choose action with MADDPG algorithms and the preyer acts with uniform distribution from -1. to 1.
+
 
 ## Dependency
 * pytorch==1.0.1  
@@ -30,12 +33,15 @@ def adversary_reward(self, agent, world):
 
 ```
 
-
 ## Getting started
 ### Train
 ```
 python train.py --tensorboard
 ```
 
-## Result
+### Result
 ![simple_tag](/screenshot/simple_tag.png)
+
+## Acknowledgement
+* [shariqiqbal2810's Pytorch implementation](https://github.com/shariqiqbal2810/maddpg-pytorch) (Most motivated)
+* [Kostrikov's Pytorch implementation](https://github.com/ikostrikov/pytorch-ddpg-naf)
