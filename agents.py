@@ -120,7 +120,10 @@ class Predators:
             next_state_batches = Variable(torch.Tensor(next_state_batches).to(self.device))
             done_batches = Variable(torch.Tensor((done_batches == False) * 1).reshape(self.config.batch_size, self.num_agent, 1).to(self.device))
 
-            target_next_actions = self.agents[agent_idx].actor_target.forward(next_state_batches).detach()
+
+            target_next_actions = Variable(torch.Tensor(np.zeros(shape=(self.config.batch_size, self.num_agent, self.a_dim), dtype=np.float))).to(self.device)
+            for agt in range(self.num_agent):
+                target_next_actions[:, agt] = self.agents[agt].actor_target.forward(next_state_batches[:, agt])
             target_next_q = self.agents[agent_idx].critic_target.forward(next_state_batches, target_next_actions).detach()
 
             main_q = self.agents[agent_idx].critic(state_batches, action_batches)
