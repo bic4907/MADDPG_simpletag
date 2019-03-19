@@ -53,9 +53,6 @@ class Predator:
     def reset(self):
         self.random_process.reset_states()
 
-    def train(self):
-        pass
-
 
 class Predators:
 
@@ -87,9 +84,12 @@ class Predators:
         for agent_idx, agent in enumerate(self.agents):
             actions[agent_idx] = agent.actor.forward(s)[agent_idx].cpu().detach().numpy()
             if noisy:
-                actions[agent_idx] += max(self.epsilon, 0.001) * agent.random_process.sample()
+                actions[agent_idx] += self.epsilon * agent.random_process.sample()
                 actions[agent_idx] = np.clip(actions[agent_idx], -1., 1.)
-                self.epsilon -= self.depsilon
+
+        self.epsilon -= self.depsilon
+        self.epsilon = max(self.epsilon, 0)
+
         return actions
 
     def random_action(self):
@@ -109,6 +109,20 @@ class Predators:
         done_batches = np.array([_[4] for _ in experiences])
 
         return state_batches, action_batches, reward_batches, next_state_batches, done_batches
+
+    def prep_train(self):
+        for a in self.agents:
+            a.actor.train()
+            a.critic.train()
+            a.actor_target.train()
+            a.critic_target.train()
+
+    def prep_eval(self):
+        for a in self.agents:
+            a.actor.eval()
+            a.critic.eval()
+            a.actor_target.eval()
+            a.critic_target.eval()
 
     def train(self):
         for agent_idx in range(len(self.agents)):
@@ -133,21 +147,26 @@ class Predators:
             baselines =  self.config.reward_coef * reward_batches[:, agent_idx] + done_batches[:, agent_idx] * self.config.gamma * target_next_q
             loss_critic = torch.nn.MSELoss()(main_q, baselines)
             loss_critic.backward()
+            torch.nn.utils.clip_grad_norm_(self.agents[agent_idx].critic.parameters(), 0.5)
             self.agents[agent_idx].critic_optimizer.step()
 
             # Actor Loss
             self.agents[agent_idx].actor.zero_grad()
             pure_action_batches = action_batches.clone() # memory의 action들은 기본적으로 noisy가 있기때문에 선택된 agent에 대해서만 pure한 액션으로 바꾸어 학습시킴
-            agent_idx_pure_action = self.agents[agent_idx].actor.forward(state_batches)[:, agent_idx]
+            agent_idx_pure_action = self.agents[agent_idx].actor.forward(state_batches[:, agent_idx])
             pure_action_batches[:, agent_idx] = agent_idx_pure_action
-            loss_actor = (-self.agents[agent_idx].critic.forward(state_batches, pure_action_batches)).mean()
+            loss_actor = -self.agents[agent_idx].critic.forward(state_batches, pure_action_batches).mean()
+
+            loss_actor += (agent_idx_pure_action ** 2).mean() * 1e-3
             loss_actor.backward()
+            torch.nn.utils.clip_grad_norm_(self.agents[agent_idx].actor.parameters(), 0.5)
             self.agents[agent_idx].actor_optimizer.step()
 
             # This is for logging
             self.agents[agent_idx].c_loss = loss_critic.item()
             self.agents[agent_idx].a_loss = loss_actor.item()
 
+        for agent_idx in range(len(self.agents)):
             soft_update(self.agents[agent_idx].actor, self.agents[agent_idx].actor_target, self.config.tau)
             soft_update(self.agents[agent_idx].critic, self.agents[agent_idx].critic_target, self.config.tau)
 
