@@ -152,9 +152,19 @@ class Predators:
 
             # Actor Loss
             self.agents[agent_idx].actor.zero_grad()
-            pure_action_batches = action_batches.clone() # memory의 action들은 기본적으로 noisy가 있기때문에 선택된 agent에 대해서만 pure한 액션으로 바꾸어 학습시킴
             agent_idx_pure_action = self.agents[agent_idx].actor.forward(state_batches[:, agent_idx])
+            pure_action_batches = action_batches.clone()
+            for agt in range(self.num_agent):
+                if agt == agent_idx: continue
+                pure_action_batches[:, agt] = self.agents[agt].actor_target.forward(state_batches[:, agt])
             pure_action_batches[:, agent_idx] = agent_idx_pure_action
+            '''
+            pure_action_batches = action_batches.clone()
+            # memory의 action들은 기본적으로 noisy가 있기때문에 선택된 agent에 대해서만 pure한 액션으로 바꾸어 학습시킴
+            
+            pure_action_batches[:, agent_idx] = agent_idx_pure_action
+            '''
+
             loss_actor = -self.agents[agent_idx].critic.forward(state_batches, pure_action_batches).mean()
 
             loss_actor += (agent_idx_pure_action ** 2).mean() * 1e-3
